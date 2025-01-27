@@ -30,7 +30,14 @@ public class GoalController {
 
     private final IGoalService goalService;
     private final GoalMapper goalMapper;
+    private final JwtUtil jwtUtil;
 
+
+    private Long getUserIdFromJwt() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String token = (String) authentication.getCredentials();
+        return jwtUtil.extractUserId(token);
+    }
 
     @Operation(summary = "Crear una nueva meta", description = "Permite crear una nueva meta financiera con los datos proporcionados por el usuario.")
     @ApiResponses({
@@ -45,6 +52,8 @@ public class GoalController {
         GoalResponse response = goalMapper.toResponse(createdGoal);
         return ResponseEntity.ok(response);
     }
+
+
 
     @Operation(summary = "Listar todas las metas", description = "Devuelve una lista de todas las metas no eliminadas.")
     @ApiResponses({
