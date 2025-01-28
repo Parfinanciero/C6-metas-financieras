@@ -7,7 +7,7 @@ import com.riwi.goals.application.mappers.GoalMapper;
 import com.riwi.goals.domain.entities.Goal;
 import com.riwi.goals.domain.enums.Status;
 import com.riwi.goals.domain.ports.service.IGoalService;
-import com.riwi.goals.infrastructure.security.JwtUtil;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,13 +30,13 @@ public class GoalController {
 
     private final IGoalService goalService;
     private final GoalMapper goalMapper;
-    private final JwtUtil jwtUtil;
+    //private final JwtUtil jwtUtil;
 
 
     private Long getUserIdFromJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String token = (String) authentication.getCredentials();
-        return jwtUtil.extractUserId(token);
+        return 23l;
     }
 
     @Operation(summary = "Crear una nueva meta", description = "Permite crear una nueva meta financiera con los datos proporcionados por el usuario.")

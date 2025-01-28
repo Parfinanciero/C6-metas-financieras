@@ -14,27 +14,5 @@ public class GoalUpdateRequest {
     private Double currentMount; // Monto actual alcanzado
     private Status status; // Estado de la meta
 
-    public LocalDate getEndDate() {
-        return endDate;
-    }
 
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public Double getCurrentMount() {
-        return currentMount;
-    }
-
-    public void setCurrentMount(Double currentMount) {
-        this.currentMount = currentMount;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
 }
