@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -27,6 +28,19 @@ public class GoalService implements IGoalService {
 
     @Override
     public Goal create(GoalRequest request, Long userId) {
+        if (request == null) {
+            throw new InvalidRequestException("Goal request cannot be null.");
+        }
+
+        if (request == null || request.getTitle() == null || request.getTitle().isEmpty()) {
+            throw new InvalidRequestException("Goal title is required.");
+        }
+
+        if (request.getStartDate() != null && request.getStartDate().isAfter(LocalDate.now())
+                && request.getEndDate() != null && request.getEndDate().isBefore(LocalDate.now())) {
+            throw new InvalidRequestException("Goal end date cannot be before today.");
+        }
+
         // Convertimos el DTO a la entidad y le asignamos el userId
         Goal goal = goalMapper.toEntity(request);
         goal.setStatus(Status.CREATED); // Asignamos un estado inicial
