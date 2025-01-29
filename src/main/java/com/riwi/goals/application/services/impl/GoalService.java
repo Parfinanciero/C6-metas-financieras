@@ -91,4 +91,9 @@ public class GoalService implements IGoalService {
                 .orElseThrow(() -> new ResourceNotFoundException("Goal not found with goalId " + goalId + " for UserId: " + userId));
     }
 
+    public Goal findById(Long goalId) {
+        return repository.findById(goalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Goal not found with goalId " + goalId));
+    }
+
 }
