@@ -35,24 +35,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SERVER_KEY }}
 
-      - name: Crear archivo .env en el servidor
+      - name: Crear archivo .env en el servidor desde el secreto ENV_FILES
         run: |
-          echo "JDBC_DATABASE_URL=${{ secrets.JDBC_DATABASE_URL }}" > ~/.env
-          echo "JDBC_DATABASE_USERNAME=${{ secrets.JDBC_DATABASE_USERNAME }}" >> ~/.env
-          echo "JDBC_DATABASE_PASSWORD=${{ secrets.JDBC_DATABASE_PASSWORD }}" >> ~/.env
-          echo "SECURITY_USER_NAME=${{ secrets.SECURITY_USER_NAME }}" >> ~/.env
-          echo "SECURITY_USER_PASSWORD=${{ secrets.SECURITY_USER_PASSWORD }}" >> ~/.env
-          echo "SWAGGER_UI_PATH=${{ secrets.SWAGGER_UI_PATH }}" >> ~/.env
-          echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> ~/.env
-          echo "IA_API_KEY=${{ secrets.IA_API_KEY }}" >> ~/.env
-          echo "IA_API_URL=${{ secrets.IA_API_URL }}" >> ~/.env
-          echo "IA_MODEL=${{ secrets.IA_MODEL }}" >> ~/.env
-          echo "IA_MAX_TOKENS=${{ secrets.IA_MAX_TOKENS }}" >> ~/.env
-          echo "IA_MAX_TEMPERATURE=${{ secrets.IA_MAX_TEMPERATURE }}" >> ~/.env
-          echo "IA_TOP_P=${{ secrets.IA_TOP_P }}" >> ~/.env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/.env
-          echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" >> ~/.env
-          echo "JWT_REFRESH=${{ secrets.JWT_REFRESH }}" >> ~/.env
+          # Guardar el contenido del secreto ENV_FILES en un archivo temporal
+          echo "${{ secrets.ENV_FILES }}" > ~/.env
+
+          # Verificar si se guardó correctamente
+          cat ~/.env  # Solo para verificar, puedes eliminar esta línea después
+
+          # Copiar el archivo .env al servidor
           scp -P ${{ secrets.SERVER_PORT }} ~/.env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/.env
 
       - name: Deploy to VPS
@@ -69,9 +60,6 @@ jobs:
 
           echo "Copiando el nuevo JAR..."
           scp -P ${{ secrets.SERVER_PORT }} target/goals-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
-
-          echo "Copiando el archivo .env al servidor..."
-          scp -P ${{ secrets.SERVER_PORT }} .env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
 
           echo "Verificando que el JAR y .env se copió correctamente..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l /var/www/C6-metas-financieras"
