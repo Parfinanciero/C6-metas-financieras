@@ -4,7 +4,10 @@ import com.riwi.goals.domain.entities.Advice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AdviceRepository extends JpaRepository<Advice, Long> {
-    List<Advice> findByGoalId(Long goalId);
+    Optional<Advice> findByGoalId(Long goalId);
+    void deleteByGoalId(Long goalId);
+
 }

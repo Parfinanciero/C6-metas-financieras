@@ -14,8 +14,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,7 +49,7 @@ public class GoalController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos proporcionados", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<GoalResponse> createGoal(@RequestBody GoalRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<GoalResponse> createGoal(@Valid @RequestBody GoalRequest request, HttpServletRequest httpServletRequest) {
         Long userId = getUserIdFromRequest(httpServletRequest);
         Goal createdGoal = goalService.create(request, userId);
         GoalResponse response = goalMapper.toResponse(createdGoal);
@@ -64,6 +66,11 @@ public class GoalController {
     @GetMapping
     public ResponseEntity<List<GoalResponse>> getAllGoals(HttpServletRequest httpServletRequest) {
         Long userId = getUserIdFromRequest(httpServletRequest);  // Obtienes el userId desde el request
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         List<Goal> goals = goalService.readByUserId(userId);
         List<GoalResponse> responses = goals.stream()
                 .map(goalMapper::toResponse)
@@ -111,7 +118,7 @@ public class GoalController {
             @ApiResponse(responseCode = "404", description = "Meta no encontrada", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<GoalResponse> updateGoal(@PathVariable Long id, @RequestBody GoalUpdateRequest request, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<GoalResponse> updateGoal(@PathVariable Long id, @Valid @RequestBody GoalUpdateRequest request, HttpServletRequest httpServletRequest) {
         Long userId = getUserIdFromRequest(httpServletRequest);  // Obtienes el userId desde el request
         Goal updatedGoal = goalService.update(id, request, userId);
         GoalResponse response = goalMapper.toResponse(updatedGoal);
@@ -145,4 +152,5 @@ public class GoalController {
         GoalResponse response = goalMapper.toResponse(goal);
         return ResponseEntity.ok(response);
     }
+
 }
