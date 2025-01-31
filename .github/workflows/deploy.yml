@@ -32,25 +32,30 @@ jobs:
       - name: Deploy to VPS
         run: |
           set -e  # Detener el script si algún comando falla
-          DEPLOY_DIR="/var/www/C6-metas-financieras"  # Actualiza la ruta de tu proyecto en el VPS
-          LOGS_DIR="$DEPLOY_DIR/logs"
-          APP_JAR="goals-0.0.1-SNAPSHOT.jar"  # Cambia el nombre del JAR
+    
           echo "Creando directorio de logs (si no existe)..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p $LOGS_DIR"
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /var/www/C6-metas-financieras/logs"
+      
           echo "Matando proceso anterior (si existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
+          PID=\$(pgrep -f goals-0.0.1-SNAPSHOT.jar) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
           "
+      
           echo "Copiando el nuevo JAR..."
-          scp -P ${{ secrets.SERVER_PORT }} target/$APP_JAR ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:$DEPLOY_DIR/
+          scp -P ${{ secrets.SERVER_PORT }} target/goals-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
+      
           echo "Verificando que el JAR se copió correctamente..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l $DEPLOY_DIR"
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l /var/www/C6-metas-financieras"
+      
           echo "Dando permisos de ejecución al JAR..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod +x $DEPLOY_DIR/$APP_JAR"
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod +x /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar"
+      
           echo "Iniciando la aplicación en segundo plano..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          nohup java -jar $DEPLOY_DIR/$APP_JAR > $LOGS_DIR/output.log 2>&1 & \
+          nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
           "
+      
           echo "Verificando que la aplicación se está ejecutando..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f $APP_JAR"
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f goals-0.0.1-SNAPSHOT.jar"
+      
           echo "Deploy completed"
