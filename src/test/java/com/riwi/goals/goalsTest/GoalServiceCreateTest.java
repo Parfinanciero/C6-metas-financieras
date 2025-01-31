@@ -63,10 +63,13 @@ public class GoalServiceCreateTest {
 
         Goal result = goalService.create(goalRequest, userId);
 
-        assertNotNull(result);
-        assertEquals("Learn Mockito", result.getTitle());
-        assertEquals(Status.CREATED, result.getStatus());
-        assertEquals(userId, result.getUserId());
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals("Learn Mockito", result.getTitle()),
+                () -> assertEquals(Status.CREATED, result.getStatus()),
+                () -> assertEquals(userId, result.getUserId())
+        );
 
         verify(goalRepository, times(1)).save(any(Goal.class));
     }

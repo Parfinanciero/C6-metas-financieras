@@ -28,10 +28,6 @@ public class GoalService implements IGoalService {
 
     @Override
     public Goal create(GoalRequest request, Long userId) {
-        if (request == null) {
-            throw new InvalidRequestException("Goal request cannot be null.");
-        }
-
         if (request == null || request.getTitle() == null || request.getTitle().isEmpty()) {
             throw new InvalidRequestException("Goal title is required.");
         }
@@ -53,7 +49,7 @@ public class GoalService implements IGoalService {
         // Buscamos metas por estado y asociadas a un userId
         List<Goal> goals = repository.findByStatusAndUserId(status, userId);
         if (goals.isEmpty()) {
-            throw new ResourceNotFoundException("Goals not found with status " + status + " for UserId: " + userId);
+            throw new ResourceNotFoundException("Goals not found with status: " + status + " for UserId: " + userId);
         }
         return goals;
     }

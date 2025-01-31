@@ -11,18 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Goals Read")
+@DisplayName("Suite de Pruebas: Operaciones de Lectura en GoalService")
 class GoalServiceReadTest {
 
     @Mock
@@ -37,128 +36,154 @@ class GoalServiceReadTest {
     void setUp() {
         goal = new Goal();
         goal.setId(1L);
-        goal.setTitle("Test Goal");
-        goal.setStatus(Status.CREATED);
-        goal.setUserId(1L);
+        goal.setTitle("Aprender Testing");
+        goal.setStatus(Status.IN_PROGRESS);
+        goal.setUserId(100L);
     }
 
     @Test
-    void readByStatus_shouldReturnGoals_whenGoalsExist() {
-        // Dado que el repositorio retorna una lista de metas
-        when(goalRepository.findByStatusAndUserId(Status.CREATED, 1L)).thenReturn(Collections.singletonList(goal));
+    @DisplayName("Reading by status - Success in meeting goals")
+    void readByStatus_ReturnsGoalList_WhenGoalsExist() {
+        Long userId = 100L;
+        Status testStatus = Status.IN_PROGRESS;
+        when(goalRepository.findByStatusAndUserId(testStatus, userId))
+                .thenReturn(List.of(goal));
 
-        // Ejecutamos el método
-        var goals = goalService.readByStatus(1L, Status.CREATED);
+        var result = goalService.readByStatus(userId, testStatus);
 
-        // Verificamos los resultados
-        assertNotNull(goals);
-        assertFalse(goals.isEmpty());
-        assertEquals(1, goals.size());
-        assertEquals("Test Goal", goals.get(0).getTitle());
+        assertAll("Verificación de propiedades de la lista de metas",
+                () -> assertNotNull(result, "La lista no debe ser nula"),
+                () -> assertFalse(result.isEmpty(), "La lista no debe estar vacía"),
+                () -> assertEquals(1, result.size(), "Debe contener exactamente 1 meta"),
+                () -> assertEquals("Aprender Testing", result.get(0).getTitle(),
+                        "El título debe coincidir")
+        );
 
-        // Verificamos que se haya llamado al repositorio correctamente
-        verify(goalRepository, times(1)).findByStatusAndUserId(Status.CREATED, 1L);
+        verify(goalRepository).findByStatusAndUserId(testStatus, userId);
     }
 
     @Test
-    void readByStatus_shouldThrowResourceNotFoundException_whenNoGoalsExist() {
-        // Dado que el repositorio no retorna metas
-        when(goalRepository.findByStatusAndUserId(Status.CREATED, 1L)).thenReturn(Arrays.asList());
+    @DisplayName("Read by status - Trigger exception when there are no targets")
+    void readByStatus_ThrowsException_WhenNoGoalsFound() {
+        Long userId = 999L;
+        Status testStatus = Status.COMPLETED;
+        when(goalRepository.findByStatusAndUserId(testStatus, userId))
+                .thenReturn(Collections.emptyList());
 
-        // Ejecutamos y verificamos la excepción
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            goalService.readByStatus(1L, Status.CREATED);
-        });
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.readByStatus(userId, testStatus),
+                "Debe lanzar ResourceNotFoundException"
+        );
 
-        assertEquals("Goals not found with status CREATED for UserId: 1", exception.getMessage());
+        assertEquals("Goals not found with status: COMPLETED for UserId: 999",
+                exception.getMessage(),
+                "El mensaje de error debe coincidir");
     }
 
     @Test
-    void readByTitle_shouldReturnGoals_whenGoalsExist() {
-        // Dado que el repositorio retorna una lista de metas con el título "Test Goal"
-        when(goalRepository.findByTitleAndUserId("Test Goal", 1L)).thenReturn(Arrays.asList(goal));
+    @DisplayName("Search by title - Success in finding goals")
+    void readByTitle_ReturnsGoalList_WhenGoalsExist() {
+        Long userId = 100L;
+        String searchTitle = "Aprender Testing";
+        when(goalRepository.findByTitleAndUserId(searchTitle, userId))
+                .thenReturn(List.of(goal));
 
-        // Ejecutamos el método
-        var goals = goalService.readByTitle(1L, "Test Goal");
+        var result = goalService.readByTitle(userId, searchTitle);
 
-        // Verificamos los resultados
-        assertNotNull(goals);
-        assertFalse(goals.isEmpty());
-        assertEquals("Test Goal", goals.get(0).getTitle());
-
-        // Verificamos que se haya llamado al repositorio correctamente
-        verify(goalRepository, times(1)).findByTitleAndUserId("Test Goal", 1L);
+        assertAll("Verificación de resultados de búsqueda",
+                () -> assertNotNull(result, "La lista no debe ser nula"),
+                () -> assertEquals(1, result.size(), "Debe retornar 1 resultado"),
+                () -> assertEquals(searchTitle, result.get(0).getTitle(),
+                        "El título debe coincidir con la búsqueda")
+        );
     }
 
     @Test
-    void readByTitle_shouldThrowResourceNotFoundException_whenNoGoalsExist() {
-        // Dado que el repositorio no retorna metas
-        when(goalRepository.findByTitleAndUserId("Test Goal", 1L)).thenReturn(Arrays.asList());
+    @DisplayName("Search by title - Throws exception when there are no matches")
+    void readByTitle_ThrowsException_WhenNoMatchesFound() {
+        Long userId = 100L;
+        String invalidTitle = "Título Inexistente";
+        when(goalRepository.findByTitleAndUserId(invalidTitle, userId))
+                .thenReturn(Collections.emptyList());
 
-        // Ejecutamos y verificamos la excepción
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            goalService.readByTitle(1L, "Test Goal");
-        });
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.readByTitle(userId, invalidTitle)
+        );
 
-        assertEquals("Goal not found with title: Test Goal for UserId: 1", exception.getMessage());
+        assertTrue(exception.getMessage().contains(invalidTitle),
+                "El mensaje debe incluir el título buscado");
     }
 
     @Test
-    void readByUserId_shouldReturnGoals_whenGoalsExist() {
-        // Dado que el repositorio retorna una lista de metas
-        when(goalRepository.findByUserId(1L)).thenReturn(Arrays.asList(goal));
+    @DisplayName("Obtain goals per user - Success in finding records")
+    void readByUserId_ReturnsGoalList_WhenUserHasGoals() {
+        Long userId = 100L;
+        when(goalRepository.findByUserId(userId)).thenReturn(List.of(goal));
 
-        // Ejecutamos el método
-        var goals = goalService.readByUserId(1L);
+        var result = goalService.readByUserId(userId);
 
-        // Verificamos los resultados
-        assertNotNull(goals);
-        assertFalse(goals.isEmpty());
-        assertEquals("Test Goal", goals.get(0).getTitle());
-
-        // Verificamos que se haya llamado al repositorio correctamente
-        verify(goalRepository, times(1)).findByUserId(1L);
+        assertAll("Verificación de metas del usuario",
+                () -> assertNotNull(result, "La lista no debe ser nula"),
+                () -> assertEquals(1, result.size(), "Debe contener 1 meta"),
+                () -> assertEquals(userId, result.get(0).getUserId(),
+                        "Debe pertenecer al usuario correcto")
+        );
     }
 
     @Test
-    void readByUserId_shouldThrowResourceNotFoundException_whenNoGoalsExist() {
-        // Dado que el repositorio no retorna metas
-        when(goalRepository.findByUserId(1L)).thenReturn(Arrays.asList());
+    @DisplayName("Get goals per user - Throws exception when no records exist")
+    void readByUserId_ThrowsException_WhenUserHasNoGoals() {
+        Long userId = 404L;
+        when(goalRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
 
-        // Ejecutamos y verificamos la excepción
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            goalService.readByUserId(1L);
-        });
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.readByUserId(userId)
+        );
 
-        assertEquals("No goals found for UserId: 1", exception.getMessage());
+        assertEquals("No goals found for UserId: 404",
+                exception.getMessage(),
+                "El mensaje debe incluir el ID de usuario");
     }
 
     @Test
-    void readByUserIdAndGoalId_shouldReturnGoal_whenGoalExists() {
-        // Dado que el repositorio retorna la meta correspondiente al userId y goalId
-        when(goalRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(goal));
+    @DisplayName("Get specific goal - Successful in finding goal by user ID and goal")
+    void readByUserIdAndGoalId_ReturnsGoal_WhenExists() {
+        Long userId = 100L;
+        Long goalId = 1L;
+        when(goalRepository.findByIdAndUserId(goalId, userId))
+                .thenReturn(Optional.of(goal));
 
-        // Ejecutamos el método
-        var result = goalService.readByUserIdAndGoalId(1L, 1L);
+        Goal result = goalService.readByUserIdAndGoalId(userId, goalId);
 
-        // Verificamos los resultados
-        assertNotNull(result);
-        assertEquals("Test Goal", result.getTitle());
-
-        // Verificamos que se haya llamado al repositorio correctamente
-        verify(goalRepository, times(1)).findByIdAndUserId(1L, 1L);
+        assertAll("Verificación de meta específica",
+                () -> assertNotNull(result, "El objeto no debe ser nulo"),
+                () -> assertEquals(goalId, result.getId(), "El ID debe coincidir"),
+                () -> assertEquals(userId, result.getUserId(),
+                        "Debe pertenecer al usuario correcto")
+        );
     }
 
     @Test
-    void readByUserIdAndGoalId_shouldThrowResourceNotFoundException_whenGoalDoesNotExist() {
-        // Dado que el repositorio no retorna la meta correspondiente al userId y goalId
-        when(goalRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.empty());
+    @DisplayName("Get specific target - Throws exception when no user/target combination exists")
+    void readByUserIdAndGoalId_ThrowsException_WhenCombinationNotFound() {
+        Long userId = 100L;
+        Long invalidGoalId = 999L;
+        when(goalRepository.findByIdAndUserId(invalidGoalId, userId))
+                .thenReturn(Optional.empty());
 
-        // Ejecutamos y verificamos la excepción
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
-            goalService.readByUserIdAndGoalId(1L, 1L);
-        });
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> goalService.readByUserIdAndGoalId(userId, invalidGoalId)
+        );
 
-        assertEquals("Goal not found with goalId 1 for UserId: 1", exception.getMessage());
+        assertAll("Verificación de mensaje de error",
+                () -> assertTrue(exception.getMessage().contains("999"),
+                        "Debe incluir el ID de meta"),
+                () -> assertTrue(exception.getMessage().contains("100"),
+                        "Debe incluir el ID de usuario")
+        );
     }
 }
