@@ -44,15 +44,18 @@ jobs:
           echo "Copiando el nuevo JAR..."
           scp -P ${{ secrets.SERVER_PORT }} target/goals-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
       
-          echo "Verificando que el JAR se copió correctamente..."
+          echo "Copiando el archivo .env al servidor..."
+          scp -P ${{ secrets.SERVER_PORT }} .env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
+      
+          echo "Verificando que el JAR y .env se copió correctamente..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l /var/www/C6-metas-financieras"
       
           echo "Dando permisos de ejecución al JAR..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod +x /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar"
       
-          echo "Iniciando la aplicación en segundo plano..."
+          echo "Iniciando la aplicación en segundo plano con las variables de entorno..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
+          source /var/www/C6-metas-financieras/.env && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
           "
       
           echo "Verificando que la aplicación se está ejecutando..."
