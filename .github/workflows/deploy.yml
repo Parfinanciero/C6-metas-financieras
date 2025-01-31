@@ -49,11 +49,6 @@ jobs:
 
           echo "Matando proceso anterior (si existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
-          " || true
-
-          # Usar la opción -S para enviar la contraseña de sudo desde un secreto
-          echo "${{ secrets.SERVER_SUDO_PASSWORD }}" | ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
           PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && echo \$SERVER_SUDO_PASSWORD | sudo -S kill -9 \$PID || echo 'No se encontró el proceso para matar' \
           "
 
