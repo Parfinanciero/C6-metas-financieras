@@ -32,13 +32,13 @@ jobs:
       - name: Deploy to VPS
         run: |
           set -e  # Detener el script si algún comando falla
-    
+      
           echo "Creando directorio de logs (si no existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /var/www/C6-metas-financieras/logs"
       
           echo "Matando proceso anterior (si existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          PID=\$(pgrep -f goals-0.0.1-SNAPSHOT.jar) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
+          PID=\$(pgrep -f goals-0.0.1-SNAPSHOT.jar) && echo \"PID encontrado: \$PID\" || echo 'No se encontró el proceso para matar' \
           "
       
           echo "Copiando el nuevo JAR..."
