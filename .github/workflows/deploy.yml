@@ -50,7 +50,7 @@ jobs:
 
           echo "Matando proceso anterior (si existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
+          PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && kill -9 \$PID || echo 'No se encontró el proceso para matar' \
           "
 
           echo "Copiando el nuevo JAR..."
