@@ -17,6 +17,5 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     List<Goal> findByTitleAndUserId(String title, Long userId);
 
-
     Optional<Goal> findByIdAndUserId(Long id, Long userId); // Buscamos una meta por id y userId
 }

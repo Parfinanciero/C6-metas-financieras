@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -24,7 +25,8 @@ import io.swagger.v3.oas.models.info.License;
         servers = {
                 @Server(url = "http://localhost:8080", description = "Servidor local"),
                 @Server(url = "pendiente", description = "Servidor en producción")
-        }
+        },
+        security = @SecurityRequirement(name = "bearerAuth") // Esto asegura que todos los endpoints requieren autenticación
 )
 public class ApiConfig {
 
@@ -43,6 +45,15 @@ public class ApiConfig {
                         .license(new License()
                                 .name("Apache 2.0")
                                 .url("http://www.apache.org/licenses/LICENSE-2.0.html"))
+                )
+                .addSecurityItem(new io.swagger.v3.oas.models.security.SecurityRequirement().addList("bearerAuth"))
+                .components(new io.swagger.v3.oas.models.Components()
+                        .addSecuritySchemes("bearerAuth", new io.swagger.v3.oas.models.security.SecurityScheme()
+                                .name("bearerAuth")
+                                .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                        )
                 );
     }
 }
