@@ -1,72 +1,56 @@
 name: Java CI with Maven
-
 on:
   push:
     branches: [ "main", "feature/github_action" ]
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
-
       - name: Build and test with Maven
         run: |
           mvn clean package
           ls -l target/*.jar  # Verifica que el JAR se genere correctamente
-
       - name: Initialize SSH and Trust Host
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -p ${{ secrets.SERVER_PORT }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-
       - name: Setting up SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SERVER_KEY }}
-
       - name: Deploy to VPS
         run: |
           set -e  # Detener el script si algún comando falla
-
           DEPLOY_DIR="/var/www/C6-metas-financieras"  # Actualiza la ruta de tu proyecto en el VPS
           LOGS_DIR="$DEPLOY_DIR/logs"
           APP_JAR="goals-0.0.1-SNAPSHOT.jar"  # Cambia el nombre del JAR
-
           echo "Creando directorio de logs (si no existe)..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p $LOGS_DIR"
-
           echo "Matando proceso anterior (si existe)..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && echo \$SERVER_SUDO_PASSWORD | sudo -S kill -9 \$PID || echo 'No se encontró el proceso para matar' \
-          "
-
+          # Redirigir la contraseña de sudo correctamente
+          echo "${{ secrets.SERVER_SUDO_PASSWORD }}" | ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
+            PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && sudo -S kill -9 \$PID || echo 'No se encontró el proceso para matar'"
           echo "Copiando el nuevo JAR..."
           scp -P ${{ secrets.SERVER_PORT }} target/$APP_JAR ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:$DEPLOY_DIR/
-
           echo "Verificando que el JAR se copió correctamente..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l $DEPLOY_DIR"
-
           echo "Dando permisos de ejecución al JAR..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod +x $DEPLOY_DIR/$APP_JAR"
-
           echo "Iniciando la aplicación en segundo plano..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          nohup java -jar $DEPLOY_DIR/$APP_JAR > $LOGS_DIR/output.log 2>&1 & \
+            nohup java -jar $DEPLOY_DIR/$APP_JAR > $LOGS_DIR/output.log 2>&1 & \
           "
-
           echo "Verificando que la aplicación se está ejecutando..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f $APP_JAR"
-
           echo "Deploy completed"
