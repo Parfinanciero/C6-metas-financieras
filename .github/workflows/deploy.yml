@@ -53,10 +53,10 @@ jobs:
           PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && kill -9 \$PID || echo 'No se encontró el proceso para matar' \
           "
 
-          # Si el anterior falló por permisos, intenta de nuevo con sudo
+          # Si el anterior falló por permisos, intenta de nuevo con sudo sin pedir contraseña
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
           PID=\$(pgrep -f $APP_JAR) && [ -n \"\$PID\" ] && sudo kill -9 \$PID || echo 'No se encontró el proceso para matar' \
-          "
+          " || true
 
           echo "Copiando el nuevo JAR..."
           scp -P ${{ secrets.SERVER_PORT }} target/$APP_JAR ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:$DEPLOY_DIR/
