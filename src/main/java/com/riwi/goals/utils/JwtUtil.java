@@ -29,7 +29,7 @@ public class JwtUtil {
             Jws<Claims> jws = Jwts.parser()
                     .setSigningKey(getSigningKey())  //se pasa la clave secreta para la verificación
                     .build()
-                    .parseClaimsJws(token);  //se parsea el JWT
+                    .parseClaimsJws(token);  //se verifica el token
 
             System.out.println("[JwtUtils] Token validado correctamente. Payload: " + jws.getPayload());
             return jws;
