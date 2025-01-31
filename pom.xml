@@ -144,6 +144,14 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <mainClass>com.riwi.goals.GoalsApplication</mainClass> <!-- Asegúrate que esta clase esté correcta -->
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
