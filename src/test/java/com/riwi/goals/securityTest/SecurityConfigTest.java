@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -43,8 +44,11 @@ public class SecurityConfigTest {
     private static final String PUBLIC_ENDPOINT = "/swagger-ui/index.html"; // Public test endpoint
     private static final String PRIVATE_ENDPOINT = "/goals";
 
+    @Value("${jwt.token}")
+    private String token;
+
     private String generateValidToken(){
-        return "Bearer " + "eyJhbGciOiJIUzI1NiJ9.eyJqdGkiOiIxIiwibmFtZSI6InNlYmFzdGlhbiIsInVzZXJJZCI6MSwic3ViIjoic2ViYXN0aWFuQGdtYWlsLmNvbSIsImlhdCI6MTczODEwMjU4NywiZXhwIjoxMDM3ODEwMjU4N30.oQjJhv4OwZiqa9cVZc1TmWgYIqO2QM4feSizhPvvQL4";
+        return "Bearer " + token;
     }
 
     @Test
