@@ -21,4 +21,7 @@ public class Advice {
     @ManyToOne
     @JoinColumn(name = "goal_id", nullable = false)
     private Goal goal;
+
+    @Embedded
+    private TokenUsage tokenUsage;
 }
