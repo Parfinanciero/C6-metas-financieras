@@ -62,6 +62,9 @@ jobs:
           echo "Cargando variables de entorno desde el secreto ENV_FILES..."
           echo "${{ secrets.ENV_FILES }}" > /tmp/env_file
 
+          # Verificar el puerto antes de cargar las variables de entorno
+          echo "El puerto del servidor es: $SERVER_PORT"
+
           # Cargar las variables de entorno
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
             echo '${{ secrets.ENV_FILES }}' > /tmp/env_file && \
