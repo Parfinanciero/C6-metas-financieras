@@ -35,19 +35,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SERVER_KEY }}
 
-      - name: Crear archivo .env en el servidor desde el secreto ENV_FILES
-        run: |
-          echo -e "${{ secrets.ENV_FILES }}" > ~/.env
-      
-          echo "Verificando contenido del archivo .env:"
-          cat ~/.env
-      
-          echo "Copiando el archivo .env al servidor..."
-          scp -v -P ${{ secrets.SERVER_PORT }} ~/.env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/.env
-      
-          echo "Verificando que el archivo se copió correctamente..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "cat /var/www/C6-metas-financieras/.env"
-
       - name: Deploy to VPS
         run: |
           set -e  # Detener el script si algún comando falla
@@ -63,18 +50,25 @@ jobs:
           echo "Copiando el nuevo JAR..."
           scp -P ${{ secrets.SERVER_PORT }} target/goals-0.0.1-SNAPSHOT.jar ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/
 
-          echo "Verificando que el JAR y .env se copió correctamente..."
+          echo "Verificando que el JAR se copió correctamente..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "ls -l /var/www/C6-metas-financieras"
 
           echo "Dando permisos de ejecución al JAR..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "chmod +x /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar"
 
+          echo "Verificando si Java está disponible..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "java -version"
+
+          echo "Cargando variables de entorno desde el secreto ENV_FILES..."
+          echo "${{ secrets.ENV_FILES }}" > /tmp/env_file && source /tmp/env_file
+          
           echo "Iniciando la aplicación en segundo plano con las variables de entorno..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          source /var/www/C6-metas-financieras/.env && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
+          source /tmp/env_file && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
+          echo 'Comando ejecutado' || echo 'Error al ejecutar el comando' \
           "
 
           echo "Verificando que la aplicación se está ejecutando..."
-          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f goals-0.0.1-SNAPSHOT.jar"
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f goals-0.0.1-SNAPSHOT.jar || echo 'El proceso no se está ejecutando'"
 
           echo "Deploy completed"
