@@ -37,14 +37,16 @@ jobs:
 
       - name: Crear archivo .env en el servidor desde el secreto ENV_FILES
         run: |
-          # Guardar el contenido del secreto ENV_FILES en un archivo temporal
-          echo "${{ secrets.ENV_FILES }}" > ~/.env
-
-          # Verificar si se guardó correctamente
-          cat ~/.env  # Solo para verificar, puedes eliminar esta línea después
-
-          # Copiar el archivo .env al servidor
-          scp -P ${{ secrets.SERVER_PORT }} ~/.env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/.env
+          echo -e "${{ secrets.ENV_FILES }}" > ~/.env
+      
+          echo "Verificando contenido del archivo .env:"
+          cat ~/.env
+      
+          echo "Copiando el archivo .env al servidor..."
+          scp -v -P ${{ secrets.SERVER_PORT }} ~/.env ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/var/www/C6-metas-financieras/.env
+      
+          echo "Verificando que el archivo se copió correctamente..."
+          ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "cat /var/www/C6-metas-financieras/.env"
 
       - name: Deploy to VPS
         run: |
