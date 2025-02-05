@@ -71,7 +71,7 @@ jobs:
 
           echo "Iniciando la aplicación en segundo plano con las variables de entorno..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          export /var/www/C6-metas-financieras/.env && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
+          source /var/www/C6-metas-financieras/.env && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
           "
 
           echo "Verificando que la aplicación se está ejecutando..."
