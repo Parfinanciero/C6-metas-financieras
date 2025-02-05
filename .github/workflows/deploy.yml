@@ -60,13 +60,14 @@ jobs:
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "java -version"
 
           echo "Cargando variables de entorno desde el secreto ENV_FILES..."
-          echo "${{ secrets.ENV_FILES }}" > /tmp/env_file && source /tmp/env_file
-          
-          echo "Iniciando la aplicación en segundo plano con las variables de entorno..."
+          echo "${{ secrets.ENV_FILES }}" > /tmp/env_file
+
+          # Cargar las variables de entorno
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "\
-          source /tmp/env_file && nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
-          echo 'Comando ejecutado' || echo 'Error al ejecutar el comando' \
-          "
+            echo '${{ secrets.ENV_FILES }}' > /tmp/env_file && \
+            set -a && source /tmp/env_file && set +a && \
+            nohup java -jar /var/www/C6-metas-financieras/goals-0.0.1-SNAPSHOT.jar > /var/www/C6-metas-financieras/logs/output.log 2>&1 & \
+            echo 'Comando ejecutado' || echo 'Error al ejecutar el comando'"
 
           echo "Verificando que la aplicación se está ejecutando..."
           ssh -p ${{ secrets.SERVER_PORT }} ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "pgrep -f goals-0.0.1-SNAPSHOT.jar || echo 'El proceso no se está ejecutando'"
